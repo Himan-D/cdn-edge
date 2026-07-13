@@ -1,0 +1,1 @@
+hyper::service::util::ServiceFn<{closure@src/metrics/exporter.rs:202:42: 202:52}, hyper::body::Incoming>
