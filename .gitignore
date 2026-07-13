@@ -1,0 +1,5 @@
+/target/
+/config/*.pem
+/config/*.db
+/tmp/
+*.rs.bk
