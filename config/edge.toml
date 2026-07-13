@@ -16,10 +16,6 @@ shield_nodes = ["http://httpbin.org"]
 pool_size = 100
 
 [tls]
-cert_path = "config/cert.pem"
-key_path = "config/key.pem"
-acme_enabled = false
-
 [control_plane]
 api_endpoint = "http://localhost:9091/heartbeat"
 heartbeat_interval = 30

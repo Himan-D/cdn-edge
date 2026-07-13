@@ -54,16 +54,7 @@ pub struct OriginSettings {
 
 /// TLS configuration
 #[derive(Debug, Deserialize, Clone)]
-pub struct TlsSettings {
-    /// Certificate file path
-    pub cert_path: String,
-    /// Private key file path
-    pub key_path: String,
-    /// Enable ACME/Let's Encrypt
-    pub acme_enabled: bool,
-    /// ACME email for notifications
-    pub acme_email: Option<String>,
-}
+pub struct TlsSettings {}
 
 /// Control plane configuration
 #[derive(Debug, Deserialize, Clone)]

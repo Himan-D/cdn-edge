@@ -8,7 +8,6 @@ pub mod config;
 pub mod http;
 pub mod metrics;
 pub mod origin;
-pub mod tls;
 
 use thiserror::Error;
 

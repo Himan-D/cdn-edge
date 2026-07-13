@@ -1,10 +1,12 @@
 //! CDN Edge Server - Main entry point
 
+#[global_allocator]
+static GLOBAL: mimalloc::MiMalloc = mimalloc::MiMalloc;
+
 use cdn_edge::{
     cache::{DiskCache, LruCache},
     config::{self, Settings},
     metrics::MetricsExporter,
-    tls::CertManager,
     Result,
 };
 use clap::Parser;
@@ -95,18 +97,7 @@ async fn main() -> Result<()> {
     
     let cache: Arc<dyn cdn_edge::cache::CacheStore> = Arc::new(cdn_edge::cache::TieredCache::new(lru_cache_arc, disk_cache_arc));
 
-    // Load TLS certificates
-    info!("Loading TLS certificates from: {}", settings.tls.cert_path);
-    let _cert_manager = match CertManager::load(&settings.tls.cert_path, &settings.tls.key_path) {
-        Ok(manager) => {
-            info!("TLS certificates loaded successfully");
-            Some(manager)
-        }
-        Err(e) => {
-            error!("Failed to load TLS certificates: {}", e);
-            None
-        }
-    };
+    // TLS certificates no longer needed in placeholder
 
     // Start HTTP/3 server
     info!("Starting HTTP/3 server on: {}", settings.server.address);

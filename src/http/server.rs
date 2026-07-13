@@ -6,7 +6,6 @@ use crate::Result;
 use std::net::SocketAddr;
 use std::sync::Arc;
 use tracing::{info, error};
-use tokio::net::TcpListener;
 use hyper_util::server::conn::auto::Builder;
 use hyper_util::rt::TokioIo;
 use hyper::service::service_fn;
@@ -40,7 +39,17 @@ impl HttpServer {
 
     /// Start serving requests
     pub async fn serve(&self) -> Result<()> {
-        let listener = TcpListener::bind(self.local_addr).await?;
+        let socket = socket2::Socket::new(
+            socket2::Domain::for_address(self.local_addr),
+            socket2::Type::STREAM,
+            Some(socket2::Protocol::TCP),
+        )?;
+        socket.set_reuse_port(true)?;
+        socket.set_reuse_address(true)?;
+        socket.set_nonblocking(true)?;
+        socket.bind(&self.local_addr.into())?;
+        socket.listen(1024)?;
+        let listener = tokio::net::TcpListener::from_std(socket.into())?;
         info!("HTTP server running on {}", self.local_addr);
 
         loop {

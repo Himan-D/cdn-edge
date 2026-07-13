@@ -21,6 +21,7 @@ pub struct Handler {
     rate_limiter: MokaCache<String, Arc<AtomicU32>>,
     max_requests: u32,
     origin_client: OriginClient,
+    flight_locks: MokaCache<String, Arc<tokio::sync::Mutex<()>>>,
 }
 
 impl Handler {
@@ -35,11 +36,16 @@ impl Handler {
             settings.origin.shield_nodes.clone(),
         );
 
+        let flight_locks = MokaCache::builder()
+            .time_to_idle(std::time::Duration::from_secs(60))
+            .build();
+
         Self { 
             cache, 
             rate_limiter, 
             max_requests: settings.security.rate_limit_requests as u32,
             origin_client,
+            flight_locks,
         }
     }
 
@@ -80,6 +86,17 @@ impl Handler {
         }
 
         tracing::debug!("Cache MISS for {}", key);
+        
+        let lock = self.flight_locks.get_with(key.clone(), || Arc::new(tokio::sync::Mutex::new(())));
+        let _guard = lock.lock().await;
+        
+        // Double check cache in case another request filled it while we were waiting
+        if let Some(entry) = self.cache.get(&key).await {
+            if !entry.is_expired() {
+                tracing::debug!("Cache HIT (coalesced) for {}", key);
+                return self.build_response_from_cache(entry);
+            }
+        }
 
         let url = format!("http://{}{}", host, uri.path_and_query().map(|pq| pq.as_str()).unwrap_or("/"));
 

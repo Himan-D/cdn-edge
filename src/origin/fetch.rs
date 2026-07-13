@@ -52,7 +52,11 @@ impl OriginClient {
                 let uri = url.parse::<hyper::Uri>().map_err(|e| FetchError::RequestBuild(e.to_string()))?;
                 let path_query = uri.path_and_query().map(|pq| pq.as_str()).unwrap_or("/");
                 
-                for shield in &self.shield_nodes {
+                let mut shields = self.shield_nodes.clone();
+                use rand::seq::SliceRandom;
+                shields.shuffle(&mut rand::rng());
+
+                for shield in shields {
                     let shield_url = format!("{}{}", shield, path_query);
                     warn!("Trying shield node: {}", shield_url);
                     if let Ok(res) = self.fetch_internal(&shield_url).await {
